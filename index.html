@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BuzzerBeater Dashboard v4</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--line:#2b3440;--txt:#e6edf3;--mut:#8b98a9;--acc:#ff9f2e;--acc2:#4da3ff;--good:#7ee081;--bad:#ff6b6b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;font-size:14px}
+header{padding:14px 20px;background:linear-gradient(90deg,#1a1206,#161b22 60%);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+header h1{font-size:20px;color:var(--acc)}
+header h1 small{color:var(--mut);font-size:12px;margin-left:8px}
+.hstats{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.hchip{background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--mut)}
+.hchip b{color:var(--txt)}
+nav{display:flex;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line);background:#10151c}
+nav button{background:none;border:1px solid var(--line);color:var(--mut);padding:8px 18px;border-radius:8px;cursor:pointer;font-size:14px}
+nav button.on{background:var(--acc);border-color:var(--acc);color:#1a1206;font-weight:700}
+main{padding:16px 20px;max-width:1500px;margin:0 auto}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.panel h3{font-size:15px;margin-bottom:10px;color:var(--acc)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+select,input[type=text],input[type=number]{background:#0f141b;color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:13px}
+button.btn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:6px 13px;border-radius:7px;cursor:pointer;font-size:13px}
+button.btn:hover{border-color:var(--acc)}
+button.btn.pri{background:var(--acc);color:#1a1206;font-weight:700;border-color:var(--acc)}
+button.btn.sm{padding:3px 9px;font-size:12px}
+.tblwrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{background:#10151c;color:var(--mut);padding:6px 5px;white-space:nowrap;position:sticky;top:0;font-weight:600;border-bottom:1px solid var(--line)}
+td{padding:4px 4px;border-bottom:1px solid #202834;white-space:nowrap;text-align:center}
+tr.prow:hover td{background:#1a212c}
+td.pname{text-align:left;font-weight:600}
+td.pname .nick{color:var(--mut);font-size:11px}
+input.sk,input.mn,input.cd{width:46px;text-align:center;padding:3px 2px;border-radius:5px}
+input.mn{width:52px}input.cd{width:44px}
+.cv{font-weight:700}
+.pot{display:inline-block;min-width:22px;padding:1px 5px;border-radius:6px;font-weight:700;font-size:11px}
+.pot.g{background:#3d2f07;color:#ffd75e}.pot.b{background:#12304d;color:#7cc4ff}.pot.s{background:#2a3140;color:var(--mut)}
+.condch{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.exp{background:none;border:none;color:var(--mut);cursor:pointer;font-size:12px}
+.drow td{background:#10151c;padding:12px}
+.detail-wrap{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.ins{flex:1;min-width:280px}
+.ins ul{margin:6px 0 10px 18px;line-height:1.8;font-size:13px}
+.posrates span{display:inline-block;margin:2px 6px 2px 0;padding:2px 9px;border-radius:6px;background:#1c2330;font-size:12px}
+.posrates span.best{background:#3d2f07;color:#ffd75e;font-weight:700}
+.lineup-grid{display:grid;grid-template-columns:minmax(430px,1.25fr) 380px;gap:14px}
+@media(max-width:980px){.lineup-grid{grid-template-columns:1fr}}
+.court-wrap{position:relative;max-width:660px;margin:0 auto}
+.courtbg{width:100%;display:block}
+.slot{position:absolute;width:178px;transform:translateX(-50%);background:rgba(18,25,35,.93);border:1px solid var(--line);border-radius:10px;padding:7px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.slot-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.pos-chip{background:var(--acc);color:#1a1206;font-weight:800;border-radius:6px;padding:1px 9px;font-size:12px}
+.fitb{font-size:11px;font-weight:700}
+.fitb.f{color:#ffd75e}.fitb.s{color:#7cc4ff}.fitb.o{color:var(--bad)}
+.slot select{width:100%;font-size:12px}
+.slot-info{font-size:11.5px;color:var(--mut);margin-top:5px;line-height:1.5}
+.slot-info b{color:var(--txt);font-size:12.5px}
+.bench{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.bslot{flex:1;min-width:150px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px}
+.bslot .pos-chip{background:#3a4656;color:var(--txt)}
+.score-top{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.big{font-size:42px;font-weight:800;color:var(--acc)}
+.grade{padding:3px 12px;border-radius:14px;font-weight:700;font-size:13px}
+.dimrow{margin:7px 0}
+.dimrow .lb{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px}
+.dimrow .lb b{color:var(--acc2)}
+.bar{height:9px;background:#0f141b;border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#4da3ff,#7ee081)}
+.modch{font-size:10px;color:#ffd75e;margin-left:5px}
+.warnbox{background:#2a1a1a;border:1px solid #5c2b2b;border-radius:8px;padding:8px 10px;font-size:12.5px;margin-top:8px;line-height:1.7}
+.notebox{background:#14202e;border:1px solid #27455f;border-radius:8px;padding:8px 10px;font-size:12.5px;margin-top:8px;line-height:1.7;color:#bcd6ee}
+.formula{color:var(--mut);font-size:11.5px;margin-top:8px;line-height:1.6}
+.saveditem{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:13px}
+.saveditem b{flex:1}
+.saveditem .ov{color:var(--acc);font-weight:700}
+.cmp-grid{display:grid;grid-template-columns:250px 1fr;gap:14px}
+@media(max-width:900px){.cmp-grid{grid-template-columns:1fr}}
+.cmpitem{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;font-size:13px;cursor:pointer}
+.cmpitem:hover{border-color:var(--acc2)}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+table.cmp td.b{color:#ffd75e;font-weight:800}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 10px;font-size:12.5px}
+svg text{font-family:inherit}
+.hint{color:var(--mut);font-size:12px;line-height:1.7}
+footer{color:var(--mut);text-align:center;font-size:11.5px;padding:16px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏀 BuzzerBeater Dashboard <small>v4 · 261017 球隊資料</small></h1>
+  <div class="hstats" id="hstats"></div>
+</header>
+<nav>
+  <button class="on" data-tab="roster">📋 球員管理</button>
+  <button data-tab="lineup">🏀 陣容編排</button>
+  <button data-tab="compare">⚖️ 陣容比較</button>
+</nav>
+<main>
+  <section id="tab-roster"></section>
+  <section id="tab-lineup" style="display:none"></section>
+  <section id="tab-compare" style="display:none"></section>
+</main>
+<footer>有效貢獻 = 位置評級 × 位置契合(首選+6%/次選+2%/錯位−6%) × 狀態係數(0.5+狀態/16) × 新鮮度(出賽時間與體能)　·　資料自動存於瀏覽器</footer>
+
+<script>
+/* ================= 基礎資料 ================= */
+const SK=[
+ {k:'jump',n:'跳投',g:'外'},{k:'range',n:'範圍',g:'外'},{k:'pdef',n:'外防',g:'外'},
+ {k:'handle',n:'控球',g:'外'},{k:'drib',n:'運球',g:'外'},{k:'pass',n:'傳球',g:'外'},
+ {k:'post',n:'內投',g:'內'},{k:'idef',n:'內防',g:'內'},{k:'reb',n:'籃板',g:'內'},{k:'blk',n:'封截',g:'內'},
+ {k:'stam',n:'體能',g:'體'},{k:'ft',n:'罰球',g:'其'},{k:'exp',n:'經驗',g:'其'}];
+const POS=['PG','SG','SF','PF','C'];
+const PN={PG:'控球後衛',SG:'得分後衛',SF:'小前鋒',PF:'大前鋒',C:'中鋒'};
+const DEF_P=[
+ {name:'Lee Shi Man',nick:'PG1',num:11,age:29,height:196,pot:4,salary:7887,minutes:23,cond:7,prim:'PG',sec:'SG',sk:{jump:8,range:8,pdef:9,handle:10,drib:10,pass:9,post:6,idef:2,reb:3,blk:1,stam:9,ft:9,exp:13}},
+ {name:'Massamba Sadio',nick:'PG2',num:12,age:24,height:188,pot:8,salary:7350,minutes:25,cond:7,prim:'PG',sec:'SG',sk:{jump:8,range:10,pdef:8,handle:9,drib:5,pass:10,post:8,idef:5,reb:3,blk:7,stam:2,ft:17,exp:3}},
+ {name:'Iván Moreno Cala',nick:'PG3',num:13,age:22,height:206,pot:7,salary:4694,minutes:2,cond:4,prim:'PG',sec:'SF',sk:{jump:3,range:7,pdef:10,handle:6,drib:9,pass:8,post:8,idef:4,reb:5,blk:9,stam:5,ft:9,exp:1}},
+ {name:'Elvis Ridente',nick:'SG1',num:21,age:22,height:180,pot:7,salary:6997,minutes:23,cond:7,prim:'SG',sec:'PG',sk:{jump:10,range:8,pdef:9,handle:8,drib:8,pass:9,post:3,idef:3,reb:5,blk:1,stam:8,ft:11,exp:4}},
+ {name:'Mario Guarizo',nick:'SG2',num:22,age:23,height:190,pot:8,salary:6508,minutes:25,cond:6,prim:'SG',sec:'SF',sk:{jump:9,range:8,pdef:10,handle:6,drib:8,pass:4,post:5,idef:2,reb:7,blk:2,stam:8,ft:8,exp:1}},
+ {name:'Fan Siu Mun',nick:'SG3',num:23,age:25,height:203,pot:3,salary:2877,minutes:0,cond:7,prim:'SG',sec:'SF',sk:{jump:7,range:4,pdef:7,handle:4,drib:3,pass:6,post:3,idef:3,reb:7,blk:1,stam:3,ft:6,exp:1}},
+ {name:'Emile Power',nick:'SF1',num:31,age:19,height:188,pot:6,salary:5435,minutes:34,cond:7,prim:'SF',sec:'SG',sk:{jump:10,range:7,pdef:7,handle:11,drib:11,pass:5,post:10,idef:8,reb:5,blk:4,stam:6,ft:10,exp:1}},
+ {name:'Jan Jahiloo',nick:'SF2',num:32,age:27,height:193,pot:8,salary:6544,minutes:9,cond:6,prim:'SF',sec:'SG',sk:{jump:9,range:7,pdef:9,handle:8,drib:9,pass:6,post:9,idef:10,reb:4,blk:4,stam:4,ft:12,exp:5}},
+ {name:'Cheung Tze Man',nick:'SF3',num:33,age:29,height:206,pot:6,salary:2224,minutes:0,cond:7,prim:'SF',sec:'PF',sk:{jump:5,range:2,pdef:2,handle:7,drib:4,pass:1,post:6,idef:5,reb:5,blk:7,stam:6,ft:8,exp:5}},
+ {name:'Ndiomé Balde',nick:'PF1',num:41,age:24,height:188,pot:9,salary:7322,minutes:11,cond:5,prim:'PF',sec:'SF',sk:{jump:9,range:5,pdef:7,handle:9,drib:7,pass:8,post:8,idef:5,reb:10,blk:10,stam:6,ft:18,exp:4}},
+ {name:'Abdoul Mendy',nick:'PF2',num:42,age:22,height:198,pot:7,salary:7166,minutes:34,cond:8,prim:'PF',sec:'C',sk:{jump:8,range:3,pdef:8,handle:3,drib:6,pass:8,post:9,idef:10,reb:4,blk:9,stam:2,ft:18,exp:3}},
+ {name:'Lo Tsz Yu',nick:'PF3',num:43,age:29,height:206,pot:5,salary:2571,minutes:0,cond:7,prim:'PF',sec:'C',sk:{jump:6,range:7,pdef:1,handle:6,drib:7,pass:5,post:7,idef:3,reb:7,blk:4,stam:6,ft:4,exp:6}},
+ {name:'To Chung',nick:'C1',num:51,age:28,height:213,pot:6,salary:9932,minutes:23,cond:7,prim:'C',sec:'PF',sk:{jump:3,range:3,pdef:5,handle:5,drib:2,pass:7,post:9,idef:11,reb:10,blk:6,stam:6,ft:8,exp:8}},
+ {name:'Kwok Fai Kit',nick:'C2',num:52,age:27,height:206,pot:6,salary:10034,minutes:25,cond:7,prim:'C',sec:'PF',sk:{jump:9,range:1,pdef:3,handle:3,drib:2,pass:3,post:9,idef:9,reb:9,blk:6,stam:5,ft:9,exp:7}},
+ {name:'Lancelot Abry',nick:'C3',num:53,age:20,height:213,pot:6,salary:6923,minutes:6,cond:3,prim:'C',sec:'PF',sk:{jump:8,range:4,pdef:1,handle:7,drib:3,pass:3,post:6,idef:9,reb:9,blk:7,stam:2,ft:2,exp:1}}];
+
+const POS_W={
+ PG:{jump:.10,range:.08,pdef:.12,handle:.20,drib:.16,pass:.17,post:.02,idef:.04,reb:.05,blk:.02,stam:.02,ft:.01,exp:.01},
+ SG:{jump:.16,range:.14,pdef:.12,drib:.11,handle:.09,pass:.10,reb:.07,idef:.05,post:.05,blk:.03,stam:.04,ft:.02,exp:.02},
+ SF:{jump:.12,range:.08,pdef:.10,post:.10,idef:.09,reb:.11,blk:.06,pass:.08,drib:.06,handle:.05,stam:.06,ft:.03,exp:.06},
+ PF:{post:.17,idef:.16,reb:.16,blk:.12,pdef:.05,jump:.06,range:.03,pass:.07,drib:.02,handle:.02,stam:.07,ft:.03,exp:.04},
+ C:{post:.20,idef:.19,reb:.18,blk:.15,pdef:.02,pass:.05,jump:.03,range:.01,drib:0,handle:0,stam:.07,ft:.05,exp:.05}};
+const DIMS=[
+ {k:'out',n:'外線進攻',w:{PG:.28,SG:.28,SF:.22,PF:.12,C:.10}},
+ {k:'in',n:'內線進攻',w:{PG:.10,SG:.12,SF:.18,PF:.28,C:.32}},
+ {k:'play',n:'組織控傳',w:{PG:.42,SG:.24,SF:.16,PF:.10,C:.08}},
+ {k:'pd',n:'外線防守',w:{PG:.24,SG:.26,SF:.26,PF:.12,C:.12}},
+ {k:'id',n:'內線防守',w:{PG:.08,SG:.10,SF:.16,PF:.30,C:.36}},
+ {k:'rb',n:'籃板爭搶',w:{PG:.08,SG:.09,SF:.20,PF:.30,C:.33}},
+ {k:'en',n:'體能活力',w:{PG:.20,SG:.20,SF:.20,PF:.20,C:.20}}];
+const CHART_DIMS=DIMS.concat([{k:'dep',n:'板凳深度'}]);
+const DIMVAL={
+ out:p=>(p.sk.jump*.55+p.sk.range*.55)*5,
+ in:p=>(p.sk.post*.8+p.sk.pass*.2)*5,
+ play:p=>(p.sk.handle*.4+p.sk.drib*.3+p.sk.pass*.3)*5,
+ pd:p=>p.sk.pdef*5,
+ id:p=>(p.sk.idef*.62+p.sk.blk*.38)*5,
+ rb:p=>p.sk.reb*5,
+ en:p=>p.sk.stam*5,
+ ft:p=>p.sk.ft*5,
+ exp:p=>p.sk.exp*5};
+const OFF_TAC={
+ bal:{n:'平衡進攻',m:{},d:'各維度權重不變，適合任何陣容。'},
+ out:{n:'外線進攻',m:{out:1.25,in:.80,play:1.05},d:'外線進攻 +25%、組織 +5%、內線 −20%。適合射手／控球型陣容。'},
+ in:{n:'內線進攻',m:{in:1.28,rb:1.10,out:.85},d:'內線進攻 +28%、籃板 +10%、外線 −15%。適合強力內線／雙塔。'},
+ run:{n:'快打旋風',m:{en:1.22,play:1.10,out:1.06,pd:.94},d:'體能 +22%、組織 +10%、外線 +6%、外防 −6%。體能均值 <9 時總評額外 −4%。'}};
+const DEF_TAC={
+ man:{n:'人盯人',m:{pd:1.10},d:'外線防守 +10%。'},
+ zone:{n:'區域聯防',m:{id:1.16,rb:1.06,pd:.90},d:'內防 +16%、籃板 +6%、外防 −10%。'},
+ press:{n:'全場壓迫',m:{pd:1.20,en:1.10,id:.94},d:'外防 +20%、體能 +10%、內防 −6%。體能均值 <9 時總評額外 −3%。'}};
+const OVR_W={out:.17,in:.14,play:.12,pd:.14,id:.12,rb:.11,en:.07,dep:.08};
+const LSKEY='bbdash_v4';
+
+/* ================= 狀態 ================= */
+function deepCopy(o){return JSON.parse(JSON.stringify(o));}
+function defaultState(){return{
+ players:deepCopy(DEF_P),
+ lineup:{PG:12,SG:21,SF:31,PF:41,C:51},
+ bench:[11,22,42,52],
+ off:'bal',def:'man',
+ saved:[{name:'示例 · 平衡先發',slots:{PG:12,SG:21,SF:31,PF:41,C:51},bench:[11,22,42,52],off:'bal',def:'man'}]};}
+let state;
+try{state=JSON.parse(localStorage.getItem(LSKEY));}catch(e){state=null;}
+if(!state||!state.players||state.players.length!==15)state=defaultState();
+function save(){localStorage.setItem(LSKEY,JSON.stringify(state));}
+
+/* ================= 計算核心 ================= */
+const byNum=n=>state.players.find(p=>p.num===n);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const condF=c=>0.5+clamp(c,1,8)/16;
+const fresh=p=>clamp(1-Math.max(0,p.minutes-24)*(12-Math.min(p.sk.stam,12))*.0016,.85,1);
+const posFit=(p,pos)=>p.prim===pos?1.06:(p.sec===pos?1.02:.94);
+function posRating(p,pos){let s=0;for(const k in POS_W[pos])s+=POS_W[pos][k]*(p.sk[k]||0);return s*5;}
+function bestPos(p){let b=POS[0],bv=-1;POS.forEach(q=>{const v=posRating(p,q);if(v>bv){bv=v;b=q;}});return b;}
+function contrib(p,pos){return posRating(p,pos)*condF(p.cond)*posFit(p,pos)*fresh(p);}
+function totals(p){
+ let out=0,inn=0;
+ SK.forEach(s=>{if(s.g==='外')out+=p.sk[s.k];else if(s.g==='內')inn+=p.sk[s.k];});
+ return{out,inn,ovr:out+inn};}
+function grade(o){return o>=72?['頂級','#ffd75e']:o>=64?['強勁','#7ee081']:o>=56?['良好','#4da3ff']:o>=48?['普通','#c9d4e3']:['重建中','#ff8f70'];}
+function condChip(c){return c>=8?['巔峰','#7ee081']:c>=7?['良好','#a8d97e']:c>=6?['普通','#4da3ff']:c>=5?['稍累','#ffb020']:['需休','#ff6b6b'];}
+
+function evalLineup(slots,bench,off,def){
+ const dims={out:0,in:0,play:0,pd:0,id:0,rb:0,en:0};
+ let ftS=0,exS=0,n=0,h=0,c=0,m=0,st=0,fit=0;const warns=[],startNums=[];
+ POS.forEach(pos=>{
+  const p=byNum(slots[pos]);if(!p)return;
+  n++;startNums.push(p.num);
+  const f=condF(p.cond)*posFit(p,pos)*fresh(p);
+  DIMS.forEach(d=>{dims[d.k]+=DIMVAL[d.k](p)*f*d.w[pos];});
+  ftS+=DIMVAL.ft(p);exS+=DIMVAL.exp(p);
+  h+=p.height;c+=p.cond;m+=p.minutes;st+=p.sk.stam;fit+=posFit(p,pos);
+  if(p.cond<=4)warns.push(`⚠ #${p.num} ${p.name} 狀態僅 ${p.cond}，建議輪休`);
+  if(p.minutes>=34)warns.push(`⏱ #${p.num} ${p.name} 出賽 ${p.minutes} 分鐘，負荷偏高`);
+  if(posFit(p,pos)===.94)warns.push(`△ #${p.num} ${p.name} 非首選/次選位置（${pos}）`);
+ });
+ const warns2=[];
+ if(n<5)warns2.push(`⚠ 尚有 ${5-n} 個位置未排球員`);
+ const depB=(bench||[]).map(byNum).filter(Boolean);
+ let dep=0;
+ if(depB.length)dep=depB.reduce((a,p)=>a+posRating(p,bestPos(p))*condF(p.cond)*fresh(p),0)/depB.length;
+ else warns2.push('ℹ 未設板凳，深度分以 0 計');
+ dims.dep=dep;
+ const ft=n?ftS/n:0,ex=n?exS/n:0;
+ const avgH=n?h/n:0,avgC=n?c/n:0,avgM=n?m/n:0,avgSt=n?st/n:0;
+ if(n&&avgH<196)warns2.push(`📏 平均身高 ${avgH.toFixed(0)}cm 偏矮，籃板/護框恐吃虧`);
+ const mo=OFF_TAC[off].m,md=DEF_TAC[def].m,eff={};
+ CHART_DIMS.forEach(d=>{eff[d.k]=dims[d.k]*(mo[d.k]||1)*(md[d.k]||1);});
+ let ovr=0;for(const k in OVR_W)ovr+=OVR_W[k]*eff[k];
+ ovr+=ft*.03+ex*.02;
+ const notes=[];let pen=0;
+ if(off==='run'&&n&&avgSt<9){pen+=4;notes.push('⚠ 體能均值<9，快打旋風額外 −4%');}
+ if(def==='press'&&n&&avgSt<9){pen+=3;notes.push('⚠ 體能均值<9，全場壓迫額外 −3%');}
+ ovr*= (1-pen/100);
+ return{dims,eff,ft,exp:ex,overall:ovr,n,avgH,avgC,avgM,avgSt,fitAvg:n?fit/n:0,warns:warns2.concat(warns),notes};
+}
+
+/* ================= SVG 圖表 ================= */
+function radarSVG(axes,series,size){
+ size=size||300;const cx=size/2,cy=size/2,R=size/2-42,n=axes.length;
+ const pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+R*v*Math.cos(a),cy+R*v*Math.sin(a)];};
+ let s=`<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`;
+ [0.25,0.5,0.75,1].forEach(l=>{
+  s+=`<polygon points="${axes.map((_,i)=>pt(i,l).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#2b3440" stroke-width="1"/>`;});
+ axes.forEach((a,i)=>{const[x,y]=pt(i,1);s+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#2b3440" stroke-width="1"/>`;});
+ series.forEach(sr=>{
+  s+=`<polygon points="${axes.map((_,i)=>pt(i,clamp(sr.vals[i],0,1)).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="${sr.color}" fill-opacity=".18" stroke="${sr.color}" stroke-width="2"/>`;});
+ axes.forEach((a,i)=>{const[x,y]=pt(i,1.16);const c=Math.cos(-Math.PI/2+i*2*Math.PI/n);
+  const anch=c>.3?'start':(c<-.3?'end':'middle');
+  s+=`<text x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="${anch}" font-size="10.5" fill="#8b98a9">${a}</text>`;});
+ return s+'</svg>';
+}
+const SERIES_COLORS=['#ffb020','#4da3ff','#7ee081','#ff6b81','#c792ea','#f5f0a0'];
+function barsSVG(series){
+ const W=780,H=330,L=36,B=44,T=14,Rm=8,iw=W-L-Rm,ih=H-T-B;
+ const gd=iw/CHART_DIMS.length,k=series.length;
+ const bw=Math.min(30,(gd-18)/Math.max(k,1));
+ let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px">`;
+ [0,25,50,75,100].forEach(v=>{const y=T+ih-ih*v/100;
+  s+=`<line x1="${L}" y1="${y}" x2="${W-Rm}" y2="${y}" stroke="#222b36"/>`+
+     `<text x="${L-6}" y="${y+3.5}" text-anchor="end" font-size="10" fill="#66727f">${v}</text>`;});
+ CHART_DIMS.forEach((d,gi)=>{
+  const gx=L+gi*gd+(gd-bw*k)/2;
+  series.forEach((sr,si)=>{
+   const v=clamp(sr.vals[d.k]||0,0,100),bh=ih*v/100;
+   s+=`<rect x="${(gx+si*bw).toFixed(1)}" y="${(T+ih-bh).toFixed(1)}" width="${(bw-2).toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${sr.color}"><title>${sr.name} ${d.n}: ${v.toFixed(1)}</title></rect>`;});
+  s+=`<text x="${(L+gi*gd+gd/2).toFixed(1)}" y="${H-B+16}" text-anchor="middle" font-size="11" fill="#8b98a9">${d.n}</text>`;});
+ return s+'</svg>';
+}
+
+/* ================= 頁首統計 ================= */
+function renderHeader(){
+ const ps=state.players;
+ const avg=(f)=>ps.reduce((a,p)=>a+f(p),0)/ps.length;
+ const sal=ps.reduce((a,p)=>a+p.salary,0);
+ document.getElementById('hstats').innerHTML=
+  `<span class="hchip">球員 <b>${ps.length}</b></span>`+
+  `<span class="hchip">平均年齡 <b>${avg(p=>p.age).toFixed(1)}</b></span>`+
+  `<span class="hchip">平均總和 <b>${avg(p=>totals(p).ovr).toFixed(1)}</b></span>`+
+  `<span class="hchip">平均狀態 <b>${avg(p=>p.cond).toFixed(1)}</b></span>`+
+  `<span class="hchip">總薪金 <b>$${sal.toLocaleString()}</b></span>`+
+  `<span class="hchip">高潛力(≥7) <b>${ps.filter(p=>p.pot>=7).length} 人</b></span>`;
+}
+
+/* ================= 球員管理 ================= */
+let rosterFilter='ALL',rosterSort='num';
+function heat(v){return v>=16?'rgba(255,203,94,.30)':v>=12?'rgba(115,209,120,.22)':v>=8?'rgba(96,165,250,.15)':v<=4?'rgba(248,113,113,.20)':'transparent';}
+function potBadge(p){const c=p.pot>=8?'g':p.pot>=6?'b':'s';return`<span class="pot ${c}">潛${p.pot}</span>`;}
+function insights(p){
+ const s=p.sk,a=[],t=totals(p);
+ if(s.jump+s.range>=26)a.push('🎯 射手：跳投+範圍出色，外線戰術核心人選');
+ else if(s.jump+s.range>=18)a.push('🏹 具備穩定外線威脅');
+ if(s.handle+s.drib+s.pass>=27)a.push('🧭 組織核心：控／運／傳俱佳，可任進攻發起點');
+ else if(s.handle+s.drib+s.pass>=21)a.push('🤹 控傳能力不俗，可分担組織');
+ if(s.pdef>=9)a.push('🛡 外線防守大閘（外防≥9）');
+ if(s.idef+s.blk>=18)a.push('🏰 護框主力：內防+封截突出');
+ if(s.reb>=9)a.push('🧲 籃板手（籃板≥9）');
+ if(s.exp>=10)a.push('🎖 老將壓陣：經驗豐富，關鍵時刻穩定');
+ if(p.age<=22&&p.pot>=7)a.push('🌱 年輕高潛力，應優先培養並給予上場時間');
+ if(p.age>=28)a.push('🕰 老將階段，狀態下滑風險，宜控制時間');
+ if(p.minutes>=33)a.push('⚠️ 出賽時間≥33分鐘，注意輪休防疲勞');
+ if(p.cond<=4)a.push('⚠️ 目前狀態欠佳，建議減少上場或調整');
+ if(s.stam<=4&&p.minutes>=24)a.push('⚠️ 體能偏低，難以支撐目前出賽時間');
+ if(p.minutes===0&&t.ovr>=55)a.push('💡 有實力但未獲上場，可考慮納入輪換');
+ if(!a.length)a.push('📌 功能型球員，按位置需求調度');
+ a.push(`📊 最佳位置：<b>${bestPos(p)}</b>（評級 ${posRating(p,bestPos(p)).toFixed(0)}）｜外線型/內線型 = ${t.out} : ${t.inn}`);
+ return a;
+}
+function detailHTML(p){
+ const axes=SK.map(s=>s.n);
+ const rd=radarSVG(axes,[{color:'#ffb020',vals:SK.map(s=>p.sk[s.k]/20)}],270);
+ const rates=POS.map(q=>`<span class="${q===bestPos(p)?'best':''}">${q} ${posRating(p,q).toFixed(0)}</span>`).join('');
+ const list=insights(p).map(t=>`<li>${t}</li>`).join('');
+ return`<div class="detail-wrap"><div>${rd}</div><div class="ins"><h4 style="color:var(--acc)">#${p.num} ${p.name} · 深度分析</h4><ul>${list}</ul><div class="posrates">各位置評級：${rates}</div></div></div>`;
+}
+function renderRoster(){
+ let ps=[...state.players];
+ if(rosterFilter!=='ALL')ps=ps.filter(p=>p.prim===rosterFilter||p.nick.startsWith(rosterFilter));
+ const cmp={num:(a,b)=>a.num-b.num,ovr:(a,b)=>totals(b).ovr-totals(a).ovr,pot:(a,b)=>b.pot-a.pot,age:(a,b)=>a.age-b.age,cond:(a,b)=>b.cond-a.cond};
+ ps.sort(cmp[rosterSort]||cmp.num);
+ const posOpts=(cur,allowEmpty)=>{
+  let h=allowEmpty?'<option value="">—</option>':'';
+  POS.forEach(q=>h+=`<option value="${q}" ${q===cur?'selected':''}>${q}</option>`);return h;};
+ const rows=ps.map(p=>{
+  const t=totals(p),[ct,cc]=condChip(p.cond);
+  const sks=SK.map(s=>`<td><input class="sk" type="number" min="0" max="20" data-num="${p.num}" data-k="${s.k}" value="${p.sk[s.k]}" style="background:${heat(p.sk[s.k])}"></td>`).join('');
+  return`<tr class="prow" data-num="${p.num}">
+   <td><button class="exp" data-num="${p.num}">▶</button></td>
+   <td>${p.num}</td>
+   <td class="pname">${p.name}<div class="nick">${p.nick}</div></td>
+   <td>${p.age}</td><td>${p.height}</td><td>${potBadge(p)}</td><td>$${p.salary.toLocaleString()}</td>
+   <td><select class="prim" data-num="${p.num}">${posOpts(p.prim,false)}</select></td>
+   <td><select class="sec" data-num="${p.num}">${posOpts(p.sec,true)}</select></td>
+   <td><input class="mn" type="number" min="0" max="48" data-num="${p.num}" value="${p.minutes}"></td>
+   <td><input class="cd" type="number" min="1" max="8" data-num="${p.num}" value="${p.cond}"></td>
+   ${sks}
+   <td class="cv" id="out-${p.num}">${t.out}</td><td class="cv" id="inn-${p.num}">${t.inn}</td>
+   <td class="cv" id="ovr-${p.num}" style="color:${grade(t.ovr)[1]}">${t.ovr}</td>
+   <td id="st-${p.num}"><span class="condch" style="background:${cc}22;color:${cc}">${ct}</span></td>
+  </tr>
+  <tr class="drow" id="d-${p.num}" style="display:none"><td colspan="28">${detailHTML(p)}</td></tr>`;
+ }).join('');
+ document.getElementById('tab-roster').innerHTML=`
+ <div class="panel">
+  <h3>球員名單管理 <small style="color:var(--mut);font-weight:400">（能力值、狀態、出賽時間可直接修改，即時重算）</small></h3>
+  <div class="toolbar">
+   <label>篩選位置 <select id="rf"><option value="ALL">全部</option>${POS.map(q=>`<option ${rosterFilter===q?'selected':''}>${q}</option>`).join('')}</select></label>
+   <label>排序 <select id="rs">
+     <option value="num" ${rosterSort==='num'?'selected':''}>號碼</option>
+     <option value="ovr" ${rosterSort==='ovr'?'selected':''}>總和</option>
+     <option value="pot" ${rosterSort==='pot'?'selected':''}>潛力</option>
+     <option value="age" ${rosterSort==='age'?'selected':''}>年齡</option>
+     <option value="cond" ${rosterSort==='cond'?'selected':''}>狀態</option></select></label>
+   <button class="btn" id="b-autosec">✨ 智能建議次選位置</button>
+   <span style="flex:1"></span>
+   <button class="btn" id="b-export">⬇ 匯出 JSON</button>
+   <button class="btn" id="b-import">⬆ 匯入 JSON</button><input type="file" id="impf" accept=".json" style="display:none">
+   <button class="btn" id="b-reset" style="color:var(--bad)">↺ 重置為初始資料</button>
+  </div>
+  <div class="tblwrap"><table>
+   <thead><tr>
+    <th></th><th>號碼</th><th style="text-align:left">名稱</th><th>年齡</th><th>身高</th><th>潛力</th><th>薪金</th>
+    <th>首選</th><th>次選</th><th>出賽</th><th>狀態</th>
+    ${SK.map(s=>`<th title="${s.g}線">${s.n}</th>`).join('')}
+    <th>外線</th><th>內線</th><th>總和</th><th>狀態</th>
+   </tr></thead>
+   <tbody>${rows}</tbody>
+  </table></div>
+  <p class="hint" style="margin-top:8px">外線 = 跳投+範圍+外防+控球+運球+傳球；內線 = 內投+內防+籃板+封截；總和 = 外線+內線。點 ▶ 展開深度分析。狀態 1–8（每週更新），出賽時間 0–48。</p>
+ </div>`;
+}
+function updateRowCalc(num){
+ const p=byNum(num);if(!p)return;
+ const t=totals(p);
+ const o=document.getElementById('out-'+num),i=document.getElementById('inn-'+num),v=document.getElementById('ovr-'+num),s=document.getElementById('st-'+num);
+ if(o){o.textContent=t.out;i.textContent=t.inn;v.textContent=t.ovr;v.style.color=grade(t.ovr)[1];
+ const[ct,cc]=condChip(p.cond);s.innerHTML=`<span class="condch" style="background:${cc}22;color:${cc}">${ct}</span>`;}
+}
+
+/* ================= 陣容編排 ================= */
+const SLOT_POS_PCT={PG:['50%','2%'],SG:['16%','30%'],SF:['84%','30%'],PF:['29%','61%'],C:['71%','61%']};
+function playerOptions(cur,used){
+ let h='<option value="">（空位）</option>';
+ state.players.forEach(p=>{
+  const dis=used.has(p.num)&&p.num!==cur?'disabled':'';
+  const t=totals(p);
+  h+=`<option value="${p.num}" ${p.num===cur?'selected':''} ${dis}>#${p.num} ${p.name}（${p.nick}）OVR${t.ovr}</option>`;});
+ return h;
+}
+function fitBadge(p,pos){
+ if(!p)return'';
+ if(p.prim===pos)return'<span class="fitb f">★首選</span>';
+ if(p.sec===pos)return'<span class="fitb s">☆次選</span>';
+ return'<span class="fitb o">△錯位</span>';
+}
+function renderLineup(){
+ const used=new Set();
+ POS.forEach(q=>{if(state.lineup[q])used.add(state.lineup[q]);});
+ state.bench.forEach(n=>{if(n)used.add(n);});
+ const slotsHTML=POS.map(pos=>{
+  const num=state.lineup[pos],p=byNum(num);
+  const usedOthers=new Set([...used].filter(x=>x!==num));
+  let info='';
+  if(p){
+   const c=contrib(p,pos),[ct,cc]=condChip(p.cond);
+   info=`<b>#${p.num} ${p.name}</b><br>貢獻 <b style="color:var(--acc)">${c.toFixed(1)}</b> ｜ 位置評級 ${posRating(p,pos).toFixed(0)} ｜ <span style="color:${cc}">狀態${p.cond}</span> ｜ 體能${p.sk.stam}`;
+  }else info='<span style="color:var(--bad)">未指派</span>';
+  const[l,t]=SLOT_POS_PCT[pos];
+  return`<div class="slot" style="left:${l};top:${t}">
+   <div class="slot-head"><span class="pos-chip">${pos}</span>${fitBadge(p,pos)}</div>
+   <select class="slot-sel" data-pos="${pos}">${playerOptions(num,usedOthers)}</select>
+   <div class="slot-info">${info}</div></div>`;
+ }).join('');
+ const benchHTML=[0,1,2,3].map(i=>{
+  const num=state.bench[i],p=byNum(num);
+  const usedOthers=new Set([...used].filter(x=>x!==num));
+  return`<div class="bslot"><div class="slot-head"><span class="pos-chip">板凳${i+1}</span>${p?`<span style="font-size:11px;color:var(--mut)">${p.name}</span>`:''}</div>
+   <select class="bench-sel" data-i="${i}">${playerOptions(num,usedOthers)}</select></div>`;}).join('');
+ const ev=evalLineup(state.lineup,state.bench,state.off,state.def);
+ const[g,gc]=grade(ev.overall);
+ const dimRows=CHART_DIMS.map(d=>{
+  const base=ev.dims[d.k],val=ev.eff[d.k];
+  const mod=Math.abs(val-base)>0.05?`<span class="modch">${val>base?'▲':'▼'}戰術</span>`:'';
+  return`<div class="dimrow"><div class="lb"><span>${d.n}${mod}</span><b>${val.toFixed(1)}</b></div>
+   <div class="bar"><i style="width:${clamp(val,0,100)}%;background:linear-gradient(90deg,${val>=60?'#7ee081,#4da3ff':val>=45?'#4da3ff,#ffb020':'#ff6b6b,#ffb020'})"></i></div></div>`;}).join('');
+ const modList=[];
+ [OFF_TAC[state.off].m,DEF_TAC[state.def].m].forEach(m=>{
+  for(const k in m){const d=CHART_DIMS.find(x=>x.k===k);modList.push(`${d?d.n:k} ${m[k]>1?'+':''}${Math.round((m[k]-1)*100)}%`);}});
+ const warnHTML=ev.warns.length?`<div class="warnbox">${ev.warns.join('<br>')}</div>`:'';
+ const noteHTML=(modList.length||ev.notes.length)?`<div class="notebox">🧠 戰術效果：${modList.join('、')||'無加成'}${ev.notes.length?'<br>'+ev.notes.join('<br>'):''}</div>`:'';
+ const savedHTML=state.saved.map((s,i)=>{
+  const e=evalLineup(s.slots,s.bench,s.off,s.def);
+  return`<div class="saveditem"><b>${s.name}</b><span style="color:var(--mut);font-size:11px">${OFF_TAC[s.off].n}＋${DEF_TAC[s.def].n}</span><span class="ov">${e.overall.toFixed(1)}</span>
+   <button class="btn sm" data-load="${i}">載入</button><button class="btn sm" data-del="${i}" style="color:var(--bad)">✕</button></div>`;}).join('');
+ document.getElementById('tab-lineup').innerHTML=`
+ <div class="lineup-grid">
+  <div>
+   <div class="panel">
+    <div class="toolbar">
+     <label>進攻戰術 <select id="tac-off">${Object.keys(OFF_TAC).map(k=>`<option value="${k}" ${state.off===k?'selected':''}>${OFF_TAC[k].n}</option>`).join('')}</select></label>
+     <label>防守戰術 <select id="tac-def">${Object.keys(DEF_TAC).map(k=>`<option value="${k}" ${state.def===k?'selected':''}>${DEF_TAC[k].n}</option>`).join('')}</select></label>
+     <button class="btn" id="b-auto">🤖 一鍵推薦陣容</button>
+     <button class="btn" id="b-clear">清空</button>
+    </div>
+    <div class="court-wrap">
+     <svg class="courtbg" viewBox="0 0 500 430">
+      <rect x="8" y="8" width="484" height="414" rx="12" fill="#12291e" stroke="#2e5a3f" stroke-width="2"/>
+      <path d="M 190 8 A 60 60 0 0 0 310 8" fill="none" stroke="#2e5a3f" stroke-width="2"/>
+      <path d="M 84 422 A 166 166 0 0 1 416 422" fill="none" stroke="#3a6b4d" stroke-width="2"/>
+      <rect x="198" y="330" width="104" height="92" fill="none" stroke="#3a6b4d" stroke-width="2"/>
+      <circle cx="250" cy="330" r="34" fill="none" stroke="#3a6b4d" stroke-width="2"/>
+      <path d="M 226 422 A 24 24 0 0 1 274 422" fill="none" stroke="#e8963a" stroke-width="2"/>
+      <line x1="232" y1="414" x2="268" y2="414" stroke="#e8963a" stroke-width="5"/>
+     </svg>
+     ${slotsHTML}
+    </div>
+    <h3 style="margin-top:14px">板凳輪換</h3>
+    <div class="bench">${benchHTML}</div>
+    <p class="hint" style="margin-top:10px">下拉選單顯示「號碼＋名稱」；★首選／☆次選位置有加成，△錯位有懲罰。板凳球員計入「板凳深度」與體能活力。</p>
+   </div>
+   <div class="panel">
+    <h3>已儲存陣容</h3>
+    <div class="toolbar"><input type="text" id="sv-name" placeholder="陣容名稱，例：週六主場・外線陣" style="flex:1;min-width:200px"><button class="btn pri" id="b-save">💾 儲存目前陣容</button></div>
+    ${savedHTML||'<p class="hint">尚無儲存陣容</p>'}
+   </div>
+  </div>
+  <div>
+   <div class="panel">
+    <h3>陣容效果評分</h3>
+    <div class="score-top"><div class="big">${ev.overall.toFixed(1)}</div>
+     <div><span class="grade" style="background:${gc}22;color:${gc}">${g}</span>
+     <div style="font-size:12px;color:var(--mut);margin-top:5px">${OFF_TAC[state.off].n} ＋ ${DEF_TAC[state.def].n}</div></div></div>
+    ${dimRows}
+    <div style="font-size:12px;color:var(--mut);margin-top:10px;line-height:1.8">
+     平均：身高 <b>${ev.avgH?ev.avgH.toFixed(0):'—'}cm</b> ｜ 狀態 <b>${ev.avgC?ev.avgC.toFixed(1):'—'}</b> ｜ 出賽 <b>${ev.avgM?ev.avgM.toFixed(0):'—'}分</b> ｜ 體能 <b>${ev.avgSt?ev.avgSt.toFixed(1):'—'}</b> ｜ 契合 <b>${ev.fitAvg?(ev.fitAvg*100).toFixed(0)+'%':'—'}</b><br>
+     罰球 <b>${ev.ft.toFixed(1)}</b> ｜ 經驗 <b>${ev.exp.toFixed(1)}</b>（以上以先發平均計入總評）</div>
+    ${noteHTML}${warnHTML}
+    <div class="formula">📐 位置貢獻 = 位置評級 × 位置契合 × 狀態係數(0.5+狀態/16) × 新鮮度(出賽時間×體能)<br>陣容維度 = Σ 五位按位置權重加總，再乘戰術修正</div>
+    <div class="notebox" style="margin-top:8px">💡 ${OFF_TAC[state.off].d}<br>🛡 ${DEF_TAC[state.def].d}</div>
+   </div>
+  </div>
+ </div>`;
+}
+
+/* ================= 陣容比較 ================= */
+let cmpSel=new Set(['cur']);
+function renderCompare(){
+ const items=[{id:'cur',name:'▶ 目前陣容',slots:state.lineup,bench:state.bench,off:state.off,def:state.def}];
+ state.saved.forEach((s,i)=>items.push({id:'sv'+i,name:s.name,slots:s.slots,bench:s.bench,off:s.off,def:s.def}));
+ const listHTML=items.map(it=>{
+  const idx=cmpSel.has(it.id)?items.filter(x=>cmpSel.has(x.id)).indexOf(it):-1;
+  const c=idx>=0?SERIES_COLORS[idx%SERIES_COLORS.length]:'#3a4656';
+  return`<label class="cmpitem"><input type="checkbox" data-cmp="${it.id}" ${cmpSel.has(it.id)?'checked':''}>
+   <span class="sw" style="background:${c}"></span><span style="flex:1">${it.name}</span>
+   <span style="color:var(--mut);font-size:11px">${OFF_TAC[it.off].n}＋${DEF_TAC[it.def].n}</span></label>`;}).join('');
+ const chosen=items.filter(it=>cmpSel.has(it.id)).slice(0,6);
+ let body='<p class="hint">請至少勾選一套陣容。</p>';
+ if(chosen.length){
+  const series=chosen.map((it,i)=>{
+   const e=evalLineup(it.slots,it.bench,it.off,it.def);
+   return{id:it.id,name:it.name,color:SERIES_COLORS[i%SERIES_COLORS.length],vals:e.eff,overall:e.overall,tac:`${OFF_TAC[it.off].n}＋${DEF_TAC[it.def].n}`};});
+  const legend=series.map(s=>`<span><span class="sw" style="background:${s.color};margin-right:5px"></span>${s.name}（${s.tac}）</span>`).join('');
+  const tblHead=`<tr><th style="text-align:left">維度</th>${series.map(s=>`<th>${s.name}<br><span style="font-weight:400;color:var(--mut);font-size:10px">${s.tac}</span></th>`).join('')}<th>最佳</th></tr>`;
+  const rows=CHART_DIMS.concat([{k:'overall',n:'⭐ 總評'}]).map(d=>{
+   const vals=series.map(s=>d.k==='overall'?s.overall:s.vals[d.k]);
+   const best=Math.max(...vals);
+   const cells=series.map((s,i)=>`<td class="${vals[i]===best?'b':''}">${vals[i].toFixed(1)}${vals[i]===best?' ★':''}</td>`).join('');
+   const winner=series[vals.indexOf(best)].name;
+   return`<tr><td style="text-align:left;font-weight:600">${d.n}</td>${cells}<td style="font-size:11px;color:var(--mut)">${winner}</td></tr>`;}).join('');
+  body=`<div class="panel"><h3>維度對比（棒狀圖）</h3><div class="legend">${legend}</div>${barsSVG(series)}</div>
+  <div class="lineup-grid" style="grid-template-columns:380px 1fr">
+   <div class="panel"><h3>雷達對比</h3>${radarSVG(CHART_DIMS.map(d=>d.n),series.map(s=>({color:s.color,vals:CHART_DIMS.map(d=>s.vals[d.k]/100)})),340)}</div>
+   <div class="panel"><h3>數值明細（★ = 該維度最佳）</h3><div class="tblwrap"><table><thead>${tblHead}</thead><tbody>${rows}</tbody></table></div></div>
+  </div>`;
+ }
+ document.getElementById('tab-compare').innerHTML=`
+ <div class="cmp-grid">
+  <div class="panel"><h3>選擇陣容（最多 6 套）</h3>${listHTML}
+   <p class="hint" style="margin-top:8px">「目前陣容」隨陣容編排頁即時變動；儲存陣容可在陣容編排頁載入／刪除。</p></div>
+  <div>${body}</div>
+ </div>`;
+}
+
+/* ================= 事件 ================= */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+ b.classList.add('on');
+ ['roster','lineup','compare'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
+ const tab=b.dataset.tab;
+ document.getElementById('tab-'+tab).style.display='';
+ if(tab==='roster')renderRoster();else if(tab==='lineup')renderLineup();else renderCompare();
+});
+
+document.addEventListener('input',e=>{
+ const el=e.target;
+ if(el.classList.contains('sk')){
+  const p=byNum(+el.dataset.num);if(!p)return;
+  p.sk[el.dataset.k]=clamp(+el.value||0,0,20);
+  el.style.background=heat(p.sk[el.dataset.k]);
+  updateRowCalc(p.num);renderHeader();save();
+ }else if(el.classList.contains('mn')||el.classList.contains('cd')){
+  const p=byNum(+el.dataset.num);if(!p)return;
+  const mx=el.classList.contains('mn')?48:8,mn=el.classList.contains('mn')?0:1;
+  p[el.classList.contains('mn')?'minutes':'cond']=clamp(+el.value||mn,mn,mx);
+  updateRowCalc(p.num);renderHeader();save();
+ }
+});
+document.addEventListener('change',e=>{
+ const el=e.target;
+ if(el.classList.contains('prim')||el.classList.contains('sec')){
+  const p=byNum(+el.dataset.num);if(!p)return;
+  if(el.classList.contains('prim'))p.prim=el.value;else p.sec=el.value;
+  save();
+ }else if(el.classList.contains('slot-sel')){
+  state.lineup[el.dataset.pos]=+el.value||null;save();renderLineup();
+ }else if(el.classList.contains('bench-sel')){
+  state.bench[+el.dataset.i]=+el.value||null;save();renderLineup();
+ }else if(el.id==='tac-off'){state.off=el.value;save();renderLineup();}
+ else if(el.id==='tac-def'){state.def=el.value;save();renderLineup();}
+ else if(el.id==='rf'){rosterFilter=el.value;renderRoster();}
+ else if(el.id==='rs'){rosterSort=el.value;renderRoster();}
+ else if(el.dataset.cmp){
+  if(el.checked)cmpSel.add(el.dataset.cmp);else cmpSel.delete(el.dataset.cmp);
+  renderCompare();
+ }
+});
+document.addEventListener('click',e=>{
+ const el=e.target;
+ if(el.classList.contains('exp')){
+  const row=document.getElementById('d-'+el.dataset.num);
+  const open=row.style.display==='none';
+  row.style.display=open?'':'none';
+  el.textContent=open?'▼':'▶';
+  if(open)row.firstElementChild.innerHTML=detailHTML(byNum(+el.dataset.num));
+ }else if(el.id==='b-auto'){
+  const used=new Set();
+  POS.forEach(pos=>{
+   let best=null,bv=-1;
+   state.players.forEach(p=>{
+    if(used.has(p.num))return;
+    const v=contrib(p,pos);
+    if(v>bv){bv=v;best=p;}});
+   if(best){state.lineup[pos]=best.num;used.add(best.num);}});
+  save();renderLineup();
+ }else if(el.id==='b-clear'){
+  state.lineup={PG:null,SG:null,SF:null,PF:null,C:null};state.bench=[null,null,null,null];
+  save();renderLineup();
+ }else if(el.id==='b-save'){
+  const nm=(document.getElementById('sv-name').value||'').trim()||('陣容 '+(state.saved.length+1));
+  state.saved.push({name:nm,slots:{...state.lineup},bench:[...state.bench],off:state.off,def:state.def});
+  save();renderLineup();
+ }else if(el.dataset.load!==undefined){
+  const s=state.saved[+el.dataset.load];
+  state.lineup={...s.slots};state.bench=[...s.bench];state.off=s.off;state.def=s.def;
+  save();renderLineup();
+ }else if(el.dataset.del!==undefined){
+  if(confirm('刪除此儲存陣容？')){state.saved.splice(+el.dataset.del,1);save();renderLineup();}
+ }else if(el.id==='b-autosec'){
+  state.players.forEach(p=>{
+   let best=null,bv=-1;
+   POS.forEach(q=>{if(q===p.prim)return;const v=posRating(p,q);if(v>bv){bv=v;best=q;}});
+   p.sec=best;});
+  save();renderRoster();
+ }else if(el.id==='b-reset'){
+  if(confirm('重置為初始資料？所有修改將丟失。')){state=defaultState();save();renderHeader();renderRoster();}
+ }else if(el.id==='b-export'){
+  const blob=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bb_dashboard_data.json';a.click();
+ }else if(el.id==='b-import'){document.getElementById('impf').click();}
+});
+document.addEventListener('change',e=>{
+ if(e.target.id==='impf'){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+   const d=JSON.parse(r.result);
+   if(!d.players||d.players.length!==15)throw 0;
+   state=d;save();renderHeader();renderRoster();
+   alert('匯入成功');
+  }catch(x){alert('匯入失敗：檔案格式不符');}};
+  r.readAsText(f);
+ }
+});
+
+/* ================= 啟動 ================= */
+renderHeader();
+renderRoster();
+</script>
+</body>
+</html>
